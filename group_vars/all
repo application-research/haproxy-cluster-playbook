@@ -1,0 +1,2 @@
+# The IP used for connecting to haproxy
+elastic_ip_lb: 10.1.2.120

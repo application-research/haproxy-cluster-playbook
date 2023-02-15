@@ -47,40 +47,9 @@ frontend http
 
     mode http
     option tcplog
-    acl api hdr(Host) -i api.haapi.tech
-    acl api hdr(Host) -i api.estuary.tech
-    acl web hdr(Host) -i haapi.tech
-    acl web hdr(Host) -i estuary.tech
     acl letsencrypt path_beg /.well-known/acme-challenge/
     use_backend letsencrypt if letsencrypt
-    use_backend api if api
-    use_backend web if web
     default_backend blackhole
-
-frontend https
-    bind *:443 ssl crt /etc/ssl/api.haapi.tech/api.haapi.tech.pem
-
-    mode http
-    option tcplog
-    acl api hdr(Host) -i api.haapi.tech
-    acl api hdr(Host) -i api.estuary.tech
-    acl web hdr(Host) -i haapi.tech
-    acl web hdr(Host) -i estuary.tech
-    acl letsencrypt path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt if letsencrypt
-    use_backend api if api
-    use_backend web if web
-    default_backend blackhole
-
-frontend database
-    bind *:5432
-    mode tcp
-    default_backend postgres
-
-frontend database_read
-    bind *:5433
-    mode tcp
-    default_backend postgres_read
 
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
@@ -89,38 +58,3 @@ backend blackhole
 # Let's Encrypt challenges
 backend letsencrypt
     server letsencrypt 127.0.0.1:8888
-
-backend api
-    option httpchk
-    http-check expect status 200
-    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{% for node in groups.estuary_main %}
-    server api{{ loop.index }} {{ hostvars[node].ansible_host }}:3004 check
-{% endfor %}
-
-backend web
-    option httpchk
-    http-check expect status 200
-    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{% for node in groups.estuary_www %}
-    server web{{ loop.index }} {{ hostvars[node].ansible_host }}:4444 check
-{% endfor %}
-
-backend postgres
-    balance leastconn
-    mode tcp
-    option httpchk
-    http-check expect status 200
-    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{% for node in groups.postgresql %}
-    server postgres{{ loop.index }} {{ hostvars[node]["ansible_bond0_0"]["ipv4"]["address"]}}:5432 maxconn 100 check port 8008
-{% endfor %}
-
-backend postgres_read
-    mode tcp
-    balance leastconn
-    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{% for node in groups.postgresql %}
-    server postgres{{ loop.index }} {{ hostvars[node]["ansible_bond0_0"]["ipv4"]["address"]}}:5432 maxconn 100 check
-{% endfor %}
-
