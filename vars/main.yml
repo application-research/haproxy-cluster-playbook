@@ -17,7 +17,7 @@ pacemaker_cluster_resources:
     action: 'create'
     provider: 'ocf:heartbeat:IPaddr2'
     options:
-      - 'ip={{ loadbalancer_floating_ips[2] }}'
+      - 'ip={{ loadbalancer_floating_ips[1] }}'
       - 'cidr_netmask=32'
       - 'nic={{ corosync_bindnet_interface }}'
     op: 'monitor'
@@ -27,7 +27,7 @@ pacemaker_cluster_resources:
     action: 'create'
     provider: 'ocf:heartbeat:IPaddr2'
     options:
-      - 'ip={{ loadbalancer_floating_ips[3] }}'
+      - 'ip={{ loadbalancer_floating_ips[2] }}'
       - 'cidr_netmask=32'
       - 'nic={{ corosync_bindnet_interface }}'
     op: 'monitor'
