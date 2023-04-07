@@ -1,0 +1,2 @@
+---
+corosync_bindnet_interface: 'bond0_0'

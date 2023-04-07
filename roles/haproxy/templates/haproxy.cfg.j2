@@ -38,6 +38,7 @@ listen stats
     bind *:8080
     stats enable
     stats uri /
+    stats admin if LOCALHOST
 
 frontend http
     bind *:80
@@ -47,8 +48,16 @@ frontend http
 
     mode http
     option tcplog
+    # Let's Encrypt
     acl letsencrypt path_beg /.well-known/acme-challenge/
     use_backend letsencrypt if letsencrypt
+    # Edge nodes
+    acl dev_edge hdr(host) -i dev-edge.estuary.tech
+    use_backend dev-edge if dev_edge
+    # Rancher (production)
+    acl rancher hdr(host) -i rancher.estuary.tech
+    use_backend rancher if rancher
+    # Blackhole all other traffic
     default_backend blackhole
 
 # Send all traffic not specifically destined for a destination to an invalid port.
@@ -58,3 +67,6 @@ backend blackhole
 # Let's Encrypt challenges
 backend letsencrypt
     server letsencrypt 127.0.0.1:8888
+
+backend dev-edge
+    server dev-edge01 10.24.6.231:80

@@ -1,0 +1,34 @@
+---
+corosync_expected_votes: "{{ ( groups[pacemaker_cluster_group]|count /2 ) | round (0, 'ceil') | int }}"
+corosync_cluster_name: 'loadbalancer'
+pacemaker_cluster_group: 'loadbalancer'
+pacemaker_cluster_resources:
+  - resource_id: 'virtual_ip'
+    action: 'create'
+    provider: 'ocf:heartbeat:IPaddr2'
+    options:
+      - 'ip={{ loadbalancer_floating_ips[0] }}'
+      - 'cidr_netmask=32'
+      - 'nic=bond0'
+    op: 'monitor'
+    op_options:
+      - 'interval=8s'
+  - resource_id: 'loadbalancer'
+    action: 'create'
+    provider: 'lsb:haproxy'
+    op: 'monitor'
+    op_options:
+      - 'timeout=5s'
+      - 'interval=5s'
+      - 'clone'
+pacemaker_cluster_settings:
+  - property: 'start-failure-is-fatal'
+    value: 'false'
+  - property: 'pe-warn-series-max'
+    value: 1000
+  - property: 'pe-input-series-max'
+    value: 1000
+  - property: 'pe-error-series-max'
+    value: 1000
+  - property: 'cluster-recheck-interval'
+    value: 5min

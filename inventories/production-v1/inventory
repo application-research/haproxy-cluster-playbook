@@ -1,0 +1,5 @@
+# Estuary inventory for EstuaryV1 Prod
+[loadbalancer]
+prod-lb01 ansible_host=139.178.94.215 equinix_uuid=FIXME
+prod-lb02 ansible_host=86.109.11.91 equinix_uuid=FIXME
+prod-lb03 ansible_host=139.178.94.211 equinix_uuid=FIXME

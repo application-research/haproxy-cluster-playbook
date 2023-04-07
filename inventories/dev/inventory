@@ -1,0 +1,3 @@
+# Estuary HAAPI dev
+[loadbalancer]
+dev-haproxy[01:03].estuary.tech

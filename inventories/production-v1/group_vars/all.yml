@@ -1,0 +1,8 @@
+---
+# Environment name - determines which secrets file will be loaded
+env_name: production
+
+# Floating IPs used for the HAProxies.
+loadbalancer_floating_ips: [
+  139.178.88.157
+]
