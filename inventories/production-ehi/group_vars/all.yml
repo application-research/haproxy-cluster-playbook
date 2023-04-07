@@ -8,3 +8,5 @@ loadbalancer_floating_ips: [
   10.24.0.3,
   10.24.0.4
 ]
+
+corosync_bindnet_interface: 'ens18'

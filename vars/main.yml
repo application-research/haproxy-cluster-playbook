@@ -3,13 +3,33 @@ corosync_expected_votes: "{{ ( groups[pacemaker_cluster_group]|count /2 ) | roun
 corosync_cluster_name: 'loadbalancer'
 pacemaker_cluster_group: 'loadbalancer'
 pacemaker_cluster_resources:
-  - resource_id: 'virtual_ip'
+  - resource_id: 'virtual_ip_1'
     action: 'create'
     provider: 'ocf:heartbeat:IPaddr2'
     options:
       - 'ip={{ loadbalancer_floating_ips[0] }}'
       - 'cidr_netmask=32'
-      - 'nic=bond0'
+      - 'nic={{ corosync_bindnet_interface }}'
+    op: 'monitor'
+    op_options:
+      - 'interval=8s'
+  - resource_id: 'virtual_ip_2'
+    action: 'create'
+    provider: 'ocf:heartbeat:IPaddr2'
+    options:
+      - 'ip={{ loadbalancer_floating_ips[2] }}'
+      - 'cidr_netmask=32'
+      - 'nic={{ corosync_bindnet_interface }}'
+    op: 'monitor'
+    op_options:
+      - 'interval=8s'
+  - resource_id: 'virtual_ip_3'
+    action: 'create'
+    provider: 'ocf:heartbeat:IPaddr2'
+    options:
+      - 'ip={{ loadbalancer_floating_ips[3] }}'
+      - 'cidr_netmask=32'
+      - 'nic={{ corosync_bindnet_interface }}'
     op: 'monitor'
     op_options:
       - 'interval=8s'

@@ -10,7 +10,7 @@
     dest: /etc/haproxy/haproxy.cfg
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Reload haproxy
 
 - name: Ensure haproxy is started

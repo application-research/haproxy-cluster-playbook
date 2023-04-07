@@ -4,8 +4,8 @@
   become: true
 
   vars_files:
-    - vars/secrets.yml
     - vars/main.yml
+    - vars/secrets.yml
 
   roles:
     - haproxy
