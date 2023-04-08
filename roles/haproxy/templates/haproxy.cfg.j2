@@ -59,9 +59,9 @@ frontend http
     # EBI AWX (production)
     acl awx hdr(host) -i awx.estuary.tech
     use_backend rke2_ebi_ingress if awx
-    # MooseFS
-#    acl moosefs hdr(host) -i moosefs.estuary.tech
-#    use_backend moosefs if moosefs	
+    # EBI Nautobot (production)
+    acl nautobot hdr(host) -i nautobot.estuary.tech|hdr(host) -i ipam.estuary.tech
+    use_backend nautobot if nautobot
     # Blackhole all other traffic
     default_backend blackhole
 
@@ -107,14 +107,37 @@ backend rke2_ebi_cluster
 backend rke2_ebi_ingress
     mode http
     balance roundrobin
+    # TODO (bug): This check should not be dependent on AWX being online.
+    # This ingress will be used for other things too, which shouldn't go offline just because AWX does.
+    option httpchk GET / HTTP/1.1\r\nHost:\ awx.estuary.tech
+    timeout check 5000
+    log global
+    server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 ssl check verify none
+    server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 ssl check verify none
+    server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 ssl check verify none
+
+backend nautobot
+    mode http
+    option httpchk
+    balance roundrobin
+    timeout check 5000
+    log global
+    server prod-nautobot01 prod-nautobot01.estuary.tech:443 check ssl verify none
+
+backend ebi_postgresql
+    balance source
+    mode tcp
+    timeout queue 1m
+    timeout connect 1s
+    timeout client 1h
+    timeout server 1h
     option httpchk
     http-check expect status 200
     timeout check 5000
-    option ssl-hello-chk
-    log global
-    server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
-    server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
-    server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
 
 backend ebi_postgresql
     balance roundrobin
