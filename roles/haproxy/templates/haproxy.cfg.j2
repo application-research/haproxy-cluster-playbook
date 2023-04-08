@@ -135,15 +135,6 @@ backend ebi_postgresql
     http-check expect status 200
     timeout check 5000
     default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
-    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
-    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 ssl check port 8008 verify required ca-file /etc/haproxy/letsencrypt-ca.pem
-
-backend ebi_postgresql
-    balance roundrobin
-    option tcp-check
-    tcp-check connect port 5432
-    timeout check 5000
-    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check
-    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check
-    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check
+    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
+    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
+    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
