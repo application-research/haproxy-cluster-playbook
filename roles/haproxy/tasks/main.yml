@@ -13,6 +13,14 @@
     mode: "0644"
   notify: Reload haproxy
 
+- name: Insert Let's Encrypt CA certificate for HAProxy to use
+  ansible.builtin.copy:
+    src: letsencrypt-ca.pem
+    dest: /etc/haproxy/letsencrypt-ca.pem
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Ensure haproxy is started
   ansible.builtin.systemd:
     name: haproxy

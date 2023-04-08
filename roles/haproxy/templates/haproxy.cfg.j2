@@ -72,6 +72,13 @@ frontend rke2_ebi_cluster
     log global
     default_backend rke2_ebi_cluster
 
+frontend ebi_postgresql
+    bind *:51432
+    mode tcp
+    option tcplog
+    log global
+    default_backend ebi_postgresql
+
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
@@ -105,6 +112,15 @@ backend rke2_ebi_ingress
     timeout check 5000
     option ssl-hello-chk
     log global
-    server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 check
-    server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 check
-    server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 check
+    server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+    server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+    server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 ssl check verify required ca-file /etc/haproxy/letsencrypt-ca.pem
+
+backend ebi_postgresql
+    balance roundrobin
+    option tcp-check
+    tcp-check connect port 5432
+    timeout check 5000
+    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check
+    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check
+    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check
