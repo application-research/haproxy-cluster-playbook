@@ -62,6 +62,9 @@ frontend http
     # EBI Nautobot (production)
     acl nautobot hdr(host) -i nautobot.estuary.tech|hdr(host) -i ipam.estuary.tech
     use_backend nautobot if nautobot
+    # EBI Snipe-IT Inventory (production)
+    acl snipeit hdr(host) -i inventory.estuary.tech|hdr(host) -i snipeit.estuary.tech
+    use_backend snipeit if snipeit
     # Blackhole all other traffic
     default_backend blackhole
 
@@ -130,6 +133,14 @@ backend nautobot
     timeout check 5000
     log global
     server prod-nautobot01 prod-nautobot01.estuary.tech:443 check ssl verify none
+
+backend snipeit
+    mode http
+    option httpchk
+    balance roundrobin
+    timeout check 5000
+    log global
+    server prod-nautobot01 prod-docker01.estuary.tech:443 check ssl verify none
 
 backend ebi_postgresql
     balance source
