@@ -79,6 +79,13 @@ frontend ebi_postgresql
     log global
     default_backend ebi_postgresql
 
+frontend mariadb_cluster
+    bind *:3306
+    mode tcp
+    option tcplog
+    log global
+    default_backend mariadb_cluster
+
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
@@ -128,7 +135,7 @@ backend ebi_postgresql
     balance source
     mode tcp
     timeout queue 1m
-    timeout connect 10s
+    timeout connect 30s
     timeout client 1h
     timeout server 1h
     option httpchk
@@ -138,3 +145,15 @@ backend ebi_postgresql
     server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
     server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
     server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+
+backend mariadb_cluster
+    balance leastconn
+    mode tcp
+    timeout queue 1m
+    timeout connect 30s
+    timeout client 1h
+    timeout server 1h
+    option httpchk
+    server prod-ebi-mariadb01 prod-ebi-mariadb01.estuary.tech:3306 check port 9200
+    server prod-ebi-mariadb02 prod-ebi-mariadb02.estuary.tech:3306 check port 9200
+    server prod-ebi-mariadb03 prod-ebi-mariadb03.estuary.tech:3306 check port 9200
