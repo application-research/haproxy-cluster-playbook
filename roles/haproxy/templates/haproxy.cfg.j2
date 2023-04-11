@@ -136,11 +136,11 @@ backend nautobot
 
 backend snipeit
     mode http
-    option httpchk
+    option httpchk GET / HTTP/1.1\r\nHost:\ inventory.estuary.tech
     balance roundrobin
     timeout check 5000
     log global
-    server prod-nautobot01 prod-docker01.estuary.tech:443 check ssl verify none
+    server prod-docker01 prod-docker01.estuary.tech:443 check ssl verify none
 
 backend ebi_postgresql
     balance source
