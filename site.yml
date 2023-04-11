@@ -10,4 +10,4 @@
   roles:
     - haproxy
     - zorlin.pacemaker
-    - ufw-setup
+    - ufw

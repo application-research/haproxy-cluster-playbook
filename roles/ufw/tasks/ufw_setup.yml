@@ -9,10 +9,6 @@
   delay: 6
   retries: 10
 
-- name: Disable and Reset Firewall on HAProxy Servers
-  community.general.ufw:
-    state: reset
-
 - name: Set up UFW rules from dictionary
   community.general.ufw:
     rule: "{{ item.rule | default('allow') }}"
