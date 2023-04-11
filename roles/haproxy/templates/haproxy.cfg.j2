@@ -65,6 +65,9 @@ frontend http
     # EBI Snipe-IT Inventory (production)
     acl snipeit hdr(host) -i inventory.estuary.tech|hdr(host) -i snipeit.estuary.tech
     use_backend snipeit if snipeit
+    # Filecoin tl;dr demo (dev)
+    acl filecointldr hdr(host) -i filecointldr.estuary.tech
+    use_backend filecointldr if filecointldr
     # Blackhole all other traffic
     default_backend blackhole
 
@@ -79,6 +82,7 @@ frontend ebi_postgresql
     bind *:51432
     mode tcp
     option tcplog
+    timeout client 1h
     log global
     default_backend ebi_postgresql
 
@@ -145,9 +149,7 @@ backend snipeit
 backend ebi_postgresql
     balance source
     mode tcp
-    timeout queue 1m
-    timeout connect 30s
-    timeout client 1h
+    timeout connect 90000
     timeout server 1h
     option httpchk
     http-check expect status 200
@@ -162,9 +164,13 @@ backend mariadb_cluster
     mode tcp
     timeout queue 1m
     timeout connect 30s
-    timeout client 1h
     timeout server 1h
     option httpchk
     server prod-ebi-mariadb01 prod-ebi-mariadb01.estuary.tech:3306 check port 9200
     server prod-ebi-mariadb02 prod-ebi-mariadb02.estuary.tech:3306 check port 9200
     server prod-ebi-mariadb03 prod-ebi-mariadb03.estuary.tech:3306 check port 9200
+
+backend filecointldr
+    balance source
+    mode http
+    server dev-nginx-ana01 10.24.6.15:80 check
