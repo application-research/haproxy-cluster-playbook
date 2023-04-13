@@ -9,7 +9,7 @@
 
   pre_tasks:
     - name: Refresh inventory when refresh_inventory is true
-      ansible.builtin.meta: refresh inventory
+      ansible.builtin.meta: refresh_inventory
       when: refresh_inventory | default('false')
 
   roles:
