@@ -7,6 +7,11 @@
     - vars/main.yml
     - vars/secrets.yml
 
+  pre_tasks:
+    - name: Refresh inventory when refresh_inventory is true
+      ansible.builtin.meta: refresh inventory
+      when: refresh_inventory | default('false')
+
   roles:
     - haproxy
     - zorlin.pacemaker
