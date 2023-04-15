@@ -155,9 +155,13 @@ backend ebi_postgresql
     http-check expect status 200
     timeout check 5000
     default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
-    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
-    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+#    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
+#    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
+#    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+# Old servers
+    server prod-ebi-db01 10.24.0.61:5432 check port 8008
+    server prod-ebi-db02 10.24.0.62:5432 check port 8008
+    server prod-ebi-db03 10.24.0.63:5432 check port 8008
 
 backend mariadb_cluster
     balance leastconn
