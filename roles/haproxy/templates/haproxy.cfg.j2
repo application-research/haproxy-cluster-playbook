@@ -65,6 +65,9 @@ frontend http
     # EBI Snipe-IT Inventory (production)
     acl snipeit hdr(host) -i inventory.estuary.tech|hdr(host) -i snipeit.estuary.tech
     use_backend snipeit if snipeit
+    # EHI Delta (production)
+    acl delta hdr(host) -i delta.estuary.tech
+    use_backend delta if delta
     # Filecoin tl;dr demo (dev)
     acl filecointldr hdr(host) -i filecointldr.estuary.tech
     use_backend filecointldr if filecointldr
@@ -108,6 +111,19 @@ backend moosefs
 
 backend dev-edge
     server dev-edge01 dev-edge01.estuary.tech:80 check
+
+backend delta
+    mode http
+    balance leastconn
+    option http-check
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:1414 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:1414 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:1414 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:1414 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:1414 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:1414 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:1414 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:1414 check
 
 backend rke2_ebi_cluster
     balance roundrobin
