@@ -115,7 +115,7 @@ backend dev-edge
 backend delta
     mode http
     balance leastconn
-    option http-check
+    option httpchk
     server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:1414 check
     server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:1414 check
     server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:1414 check
