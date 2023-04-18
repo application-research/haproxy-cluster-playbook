@@ -89,6 +89,14 @@ frontend ebi_postgresql
     log global
     default_backend ebi_postgresql
 
+frontend ehi_postgresql
+    bind *:52432
+    mode tcp
+    option tcplog
+    timeout client 1h
+    log global
+    default_backend ehi_postgresql
+
 frontend mariadb_cluster
     bind *:3306
     mode tcp
@@ -178,6 +186,19 @@ backend ebi_postgresql
     server prod-ebi-db01 10.24.0.61:5432 check port 8008
     server prod-ebi-db02 10.24.0.62:5432 check port 8008
     server prod-ebi-db03 10.24.0.63:5432 check port 8008
+
+backend ehi_postgresql
+    balance source
+    mode tcp
+    timeout connect 90000
+    timeout server 1h
+    option httpchk
+    http-check expect status 200
+    timeout check 5000
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+    server prod-ehi-db01 prod-ehi-db01.estuary.tech:5432 check port 8008
+    server prod-ehi-db02 prod-ehi-db02.estuary.tech:5432 check port 8008
+    server prod-ehi-db03 prod-ehi-db03.estuary.tech:5432 check port 8008
 
 backend mariadb_cluster
     balance leastconn
