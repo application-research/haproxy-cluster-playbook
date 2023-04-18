@@ -65,6 +65,9 @@ frontend http
     # EBI Snipe-IT Inventory (production)
     acl snipeit hdr(host) -i inventory.estuary.tech|hdr(host) -i snipeit.estuary.tech
     use_backend snipeit if snipeit
+    # EHI ArgoCD (production)
+    acl argocd hdr(host) -i argocd.estuary.tech
+    use_backend rke2_phos_ingress if argocd
     # EHI Delta (production)
     acl delta hdr(host) -i delta.estuary.tech
     use_backend delta if delta
@@ -153,6 +156,16 @@ backend rke2_ebi_ingress
     server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 ssl check verify none
     server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 ssl check verify none
     server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 ssl check verify none
+
+backend rke2_phos_ingress
+    mode http
+    balance roundrobin
+    timeout check 5000
+    # TODO add checks, use DNS to load list of workers instead of statically coding them in
+    log global
+    server prod-phos-k8s-w01 prod-phos-k8s-w01.estuary.tech:443 ssl
+    server prod-phos-k8s-w02 prod-phos-k8s-w02.estuary.tech:443 ssl
+    server prod-phos-k8s-w03 prod-phos-k8s-w03.estuary.tech:443 ssl
 
 backend nautobot
     mode http
