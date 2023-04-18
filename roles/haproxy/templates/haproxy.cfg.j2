@@ -200,6 +200,17 @@ backend ehi_postgresql
     server prod-ehi-db02 prod-ehi-db02.estuary.tech:5432 check port 8008
     server prod-ehi-db03 prod-ehi-db03.estuary.tech:5432 check port 8008
 
+backend ehi_postgresql_read
+    balance source
+    mode tcp
+    timeout connect 90000
+    timeout server 1h
+    timeout check 5000
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+    server prod-ehi-db01 prod-ehi-db01.estuary.tech:5432 check
+    server prod-ehi-db02 prod-ehi-db02.estuary.tech:5432 check
+    server prod-ehi-db03 prod-ehi-db03.estuary.tech:5432 check
+
 backend mariadb_cluster
     balance leastconn
     mode tcp
