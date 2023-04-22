@@ -54,7 +54,7 @@ frontend http
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
     # CPI Edge nodes
-    acl cpi_edge hdr(host) -i *.edge.estuary.tech
+    acl cpi_edge hdr(host) -i riffcc.edge.estuary.tech
     use_backend rke2_phos_ingress if cpi_edge
     # EBI Rancher (production)
     acl rancher hdr(host) -i rancher.estuary.tech
@@ -74,6 +74,10 @@ frontend http
     # EHI Delta (production)
     acl delta hdr(host) -i delta.estuary.tech
     use_backend delta if delta
+    acl delta-dm hdr(host) -i delta-dm.estuary.tech
+    use_backend delta-dm if delta-dm
+    acl delta-web hdr(host) -i delta-web.estuary.tech
+    use_backend delta-web if delta-web
     # Filecoin tl;dr demo (dev)
     acl filecointldr hdr(host) -i filecointldr.estuary.tech
     use_backend filecointldr if filecointldr
@@ -124,7 +128,7 @@ backend moosefs
     server mfs-m04 capella.estuary.tech:9425 check
 
 backend dev-edge
-    server dev-edge01 dev-edge01.estuary.tech:80 check
+    server dev-edge01 dev-edge01.estuary.tech:1414 check
 
 backend delta
     mode http
@@ -138,6 +142,32 @@ backend delta
     server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:1414 check
     server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:1414 check
     server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:1414 check
+
+backend delta-dm
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:1314 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:1314 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:1314 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:1314 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:1314 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:1314 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:1314 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:1314 check
+
+backend delta-web
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:3000 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:3000 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:3000 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:3000 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:3000 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:3000 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:3000 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:3000 check
 
 backend rke2_ebi_cluster
     balance roundrobin
