@@ -84,6 +84,9 @@ frontend http
     # Filecoin tl;dr demo (dev)
     acl filecointldr hdr(host) -i filecointldr.estuary.tech
     use_backend filecointldr if filecointldr
+    # FWS cdn
+    acl fwscdn hdr(host) -i fwscdn.estuary.tech
+    use_backend fwscdn if fwscdn
     # Blackhole all other traffic
     default_backend blackhole
 
@@ -129,6 +132,14 @@ backend moosefs
     server mfs-m02 vega.estuary.tech:9425 check
     server mfs-m03 sirius.estuary.tech:9425 check
     server mfs-m04 capella.estuary.tech:9425 check
+
+backend fwscdn
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-fwscdn01 prod-fwscdn01.estuary.tech:80 check
+    server prod-fwscdn02 prod-fwscdn02.estuary.tech:80 check
+    server prod-fwscdn03 prod-fwscdn03.estuary.tech:80 check
 
 backend dev-edge
     server dev-edge01 dev-edge01.estuary.tech:1414 check
