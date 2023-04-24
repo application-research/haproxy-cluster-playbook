@@ -71,6 +71,9 @@ frontend http
     # EHI ArgoCD (production)
     acl argocd hdr(host) -i argocd.estuary.tech
     use_backend rke2_phos_ingress if argocd
+    # EHI Edge (production)
+    acl edge hdr(host) -i edge.estuary.tech
+    use_backend edge if edge
     # EHI Delta (production)
     acl delta hdr(host) -i delta.estuary.tech
     use_backend delta if delta
@@ -130,6 +133,19 @@ backend moosefs
 backend dev-edge
     server dev-edge01 dev-edge01.estuary.tech:1414 check
 
+backend edge
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-edge01 prod-ehi-edge01.estuary.tech:1414 check
+    server prod-ehi-edge02 prod-ehi-edge02.estuary.tech:1414 check
+    server prod-ehi-edge03 prod-ehi-edge03.estuary.tech:1414 check
+    server prod-ehi-edge04 prod-ehi-edge04.estuary.tech:1414 check
+    server prod-ehi-edge05 prod-ehi-edge05.estuary.tech:1414 check
+    server prod-ehi-edge06 prod-ehi-edge06.estuary.tech:1414 check
+    server prod-ehi-edge07 prod-ehi-edge07.estuary.tech:1414 check
+    server prod-ehi-edge08 prod-ehi-edge08.estuary.tech:1414 check
+
 backend delta
     mode http
     balance leastconn
@@ -160,6 +176,7 @@ backend delta-web
     mode http
     balance leastconn
     option httpchk
+    http-check expect status 200,405
     server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:3000 check
     server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:3000 check
     server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:3000 check
