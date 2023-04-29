@@ -54,8 +54,11 @@ frontend http
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
     # CPI Edge nodes
-    acl cpi_edge hdr(host) -i riffcc.edge.estuary.tech
+    acl cpi_edge hdr(host) -m reg -i ^[^\.]+\.edge\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_edge
+    # CPI Delta nodes
+    acl cpi_delta hdr(host) -m reg -i ^[^\.]+\.delta\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_delta
     # EBI Rancher (production)
     acl rancher hdr(host) -i rancher.estuary.tech
     use_backend rke2_ebi_ingress if rancher
