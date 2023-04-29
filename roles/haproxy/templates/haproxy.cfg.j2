@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
@@ -137,6 +137,7 @@ backend fwscdn
     mode http
     balance leastconn
     option httpchk
+    http-check expect status 200,405
     server prod-fwscdn01 prod-fwscdn01.estuary.tech:80 check
     server prod-fwscdn02 prod-fwscdn02.estuary.tech:80 check
     server prod-fwscdn03 prod-fwscdn03.estuary.tech:80 check
