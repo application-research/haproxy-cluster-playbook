@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem alpn h2,http/1.1
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
@@ -59,6 +59,9 @@ frontend http
     # CPI Delta nodes
     acl cpi_delta hdr(host) -m reg -i ^[^\.]+\.delta\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_delta
+    # CPI Delta Registry nodes
+    acl cpi_delta_registry hdr(host) -m reg -i ^[^\.]+\.registry\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_delta_registry
     # EBI Rancher (production)
     acl rancher hdr(host) -i rancher.estuary.tech
     use_backend rke2_ebi_ingress if rancher
@@ -93,6 +96,13 @@ frontend http
     # Blackhole all other traffic
     default_backend blackhole
 
+frontend rgw_gateway
+    bind *:7480 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem
+    mode http
+    option httplog
+    log global
+    default_backend rgw_gateway
+
 frontend rke2_ebi_cluster
     bind *:9345
     mode tcp
@@ -126,6 +136,19 @@ frontend mariadb_cluster
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
+
+backend rgw_gateway
+    balance leastconn
+    option httpchk GET /swift/healthcheck
+    http-check expect status 200
+    server altair altair.estuary.tech:7480 check
+    server apollo apollo.estuary.tech:7480 check
+    server arcturus arcturus.estuary.tech:7480 check
+    server capella capella.estuary.tech:7480 check
+    server pioneer pioneer.estuary.tech:7480 check
+    server polaris polaris.estuary.tech:7480 check
+    server sirius sirius.estuary.tech:7480 check
+    server vega vega.estuary.tech:7480 check
 
 backend moosefs
     balance source
