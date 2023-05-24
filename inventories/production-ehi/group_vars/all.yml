@@ -10,3 +10,21 @@ loadbalancer_floating_ips: [
 ]
 
 corosync_bindnet_interface: 'ens18'
+
+ufw_allow_dict:
+  - { rule: 'allow', port: 22, proto: 'tcp', from_ip: 10.24.0.0/16, insert_relative_to: 'first-ipv4' }
+  - { rule: 'allow', port: 22, proto: 'tcp', from_ip: 10.25.1.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 22, proto: 'tcp', from_ip: 10.25.2.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 443, proto: 'any', from_ip: 'any', insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 80, proto: 'tcp', from_ip: 'any', insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 3306, proto: 'any', from_ip: 10.24.0.0/16, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 3306, proto: 'any', from_ip: 10.25.1.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 3306, proto: 'any', from_ip: 10.25.2.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 8443, proto: 'any', from_ip: 10.24.0.0/16, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 8443, proto: 'any', from_ip: 10.25.2.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 51432, proto: 'any', from_ip: 10.24.0.0/16, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 51432, proto: 'any', from_ip: 10.25.2.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 9345, proto: 'any', from_ip: 10.24.0.0/16, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 9345, proto: 'any', from_ip: 10.25.2.0/24, insert_relative_to: 'last-ipv4' }
+  - { rule: 'allow', port: 443, proto: 'any', from_ip: 'any', insert_relative_to: 'first-ipv6' }
+  - { rule: 'allow', port: 80, proto: 'tcp', from_ip: 'any', insert_relative_to: 'last-ipv6' }

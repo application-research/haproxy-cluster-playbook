@@ -30,3 +30,4 @@
   roles:
     - haproxy
     - zorlin.pacemaker
+    - ufw

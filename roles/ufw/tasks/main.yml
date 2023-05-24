@@ -1,0 +1,5 @@
+---
+
+# Setup UFW Firewall
+- import_tasks: "{{ role_path }}/tasks/ufw_setup.yml"
+  tags: 'ufw'

@@ -1,0 +1,3 @@
+# PCHQ testing machines
+[loadbalancer]
+haproxy[01:03].penholder.xyz
