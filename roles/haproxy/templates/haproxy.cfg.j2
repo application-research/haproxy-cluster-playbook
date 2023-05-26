@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem alpn h2,http/1.1
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem alpn h2,http/1.1
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
@@ -53,6 +53,11 @@ frontend http
     # Edge nodes
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
+    # SeaweedFS S3
+    acl s3_path hdr(host) -m reg -i ^[^\.]+\.s3\.estuary\.tech$
+    use_backend s3_gateway if s3_path
+    acl s3_direct hdr(host) -i s3.estuary.tech
+    use_backend s3_gateway if s3_direct
     # CPI Edge nodes
     acl cpi_edge hdr(host) -m reg -i ^[^\.]+\.edge\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_edge
@@ -136,6 +141,14 @@ frontend mariadb_cluster
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
+
+backend s3_gateway
+    balance leastconn
+    http-check expect status 200
+    server prod-swfs-filer01 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer02 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer03 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer04 prod-swfs-filer01.estuary.tech:443 ssl verify none
 
 backend rgw_gateway
     balance leastconn
