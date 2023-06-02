@@ -23,8 +23,8 @@ defaults
     option	httplog
     option	dontlognull
     timeout connect 5000
-    timeout client  50000
-    timeout server  50000
+    timeout client  4h
+    timeout server  4h
     errorfile 400 /etc/haproxy/errors/400.http
     errorfile 403 /etc/haproxy/errors/403.http
     errorfile 408 /etc/haproxy/errors/408.http
@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem alpn h2,http/1.1
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
@@ -53,6 +53,20 @@ frontend http
     # Edge nodes
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
+    # SeaweedFS S3
+    acl s3_path hdr(host) -m reg -i ^[^\.]+\.s3\.estuary\.tech$
+    use_backend s3_gateway if s3_path
+    acl s3_direct hdr(host) -i s3.estuary.tech
+    use_backend s3_gateway if s3_direct
+    # CPI Edge nodes
+    acl cpi_edge hdr(host) -m reg -i ^[^\.]+\.edge\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_edge
+    # CPI Delta nodes
+    acl cpi_delta hdr(host) -m reg -i ^[^\.]+\.delta\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_delta
+    # CPI Delta Registry nodes
+    acl cpi_delta_registry hdr(host) -m reg -i ^[^\.]+\.registry\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_delta_registry
     # EBI Rancher (production)
     acl rancher hdr(host) -i rancher.estuary.tech
     use_backend rke2_ebi_ingress if rancher
@@ -65,8 +79,34 @@ frontend http
     # EBI Snipe-IT Inventory (production)
     acl snipeit hdr(host) -i inventory.estuary.tech|hdr(host) -i snipeit.estuary.tech
     use_backend snipeit if snipeit
+    # EHI ArgoCD (production)
+    acl argocd hdr(host) -i argocd.estuary.tech
+    use_backend rke2_phos_ingress if argocd
+    # EHI Edge (production)
+    acl edge hdr(host) -i edge.estuary.tech
+    use_backend edge if edge
+    # EHI Delta (production)
+    acl delta hdr(host) -i delta.estuary.tech
+    use_backend delta if delta
+    acl delta-dm hdr(host) -i delta-dm.estuary.tech
+    use_backend delta-dm if delta-dm
+    acl delta-web hdr(host) -i delta-web.estuary.tech
+    use_backend delta-web if delta-web
+    # Filecoin tl;dr demo (dev)
+    acl filecointldr hdr(host) -i filecointldr.estuary.tech
+    use_backend filecointldr if filecointldr
+    # FWS cdn
+    acl fwscdn hdr(host) -i fwscdn.estuary.tech
+    use_backend fwscdn if fwscdn
     # Blackhole all other traffic
     default_backend blackhole
+
+frontend rgw_gateway
+    bind *:7480 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem
+    mode http
+    option httplog
+    log global
+    default_backend rgw_gateway
 
 frontend rke2_ebi_cluster
     bind *:9345
@@ -79,8 +119,17 @@ frontend ebi_postgresql
     bind *:51432
     mode tcp
     option tcplog
+    timeout client 1h
     log global
     default_backend ebi_postgresql
+
+frontend ehi_postgresql
+    bind *:52432
+    mode tcp
+    option tcplog
+    timeout client 1h
+    log global
+    default_backend ehi_postgresql
 
 frontend mariadb_cluster
     bind *:3306
@@ -93,6 +142,27 @@ frontend mariadb_cluster
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
 
+backend s3_gateway
+    balance leastconn
+    http-check expect status 200
+    server prod-swfs-filer01 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer02 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer03 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-swfs-filer04 prod-swfs-filer01.estuary.tech:443 ssl verify none
+
+backend rgw_gateway
+    balance leastconn
+    option httpchk GET /swift/healthcheck
+    http-check expect status 200
+    server altair altair.estuary.tech:7480 check
+    server apollo apollo.estuary.tech:7480 check
+    server arcturus arcturus.estuary.tech:7480 check
+    server capella capella.estuary.tech:7480 check
+    server pioneer pioneer.estuary.tech:7480 check
+    server polaris polaris.estuary.tech:7480 check
+    server sirius sirius.estuary.tech:7480 check
+    server vega vega.estuary.tech:7480 check
+
 backend moosefs
     balance source
     option tcp-check
@@ -102,8 +172,70 @@ backend moosefs
     server mfs-m03 sirius.estuary.tech:9425 check
     server mfs-m04 capella.estuary.tech:9425 check
 
+backend fwscdn
+    mode http
+    balance leastconn
+    option httpchk
+    http-check expect status 200,405
+    server prod-fwscdn01 prod-fwscdn01.estuary.tech:80 check
+    server prod-fwscdn02 prod-fwscdn02.estuary.tech:80 check
+    server prod-fwscdn03 prod-fwscdn03.estuary.tech:80 check
+
 backend dev-edge
-    server dev-edge01 10.24.6.231:80 check
+    server dev-edge01 dev-edge01.estuary.tech:1414 check
+
+backend edge
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-edge01 prod-ehi-edge01.estuary.tech:1414 check
+    server prod-ehi-edge02 prod-ehi-edge02.estuary.tech:1414 check
+    server prod-ehi-edge03 prod-ehi-edge03.estuary.tech:1414 check
+    server prod-ehi-edge04 prod-ehi-edge04.estuary.tech:1414 check
+    server prod-ehi-edge05 prod-ehi-edge05.estuary.tech:1414 check
+    server prod-ehi-edge06 prod-ehi-edge06.estuary.tech:1414 check
+    server prod-ehi-edge07 prod-ehi-edge07.estuary.tech:1414 check
+    server prod-ehi-edge08 prod-ehi-edge08.estuary.tech:1414 check
+
+backend delta
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:1414 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:1414 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:1414 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:1414 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:1414 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:1414 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:1414 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:1414 check
+
+backend delta-dm
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:1415 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:1415 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:1415 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:1415 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:1415 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:1415 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:1415 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:1415 check
+
+backend delta-web
+    mode http
+    balance leastconn
+    option httpchk
+    http-check expect status 200,405
+    server prod-ehi-delta01 prod-ehi-delta01.estuary.tech:3000 check
+    server prod-ehi-delta02 prod-ehi-delta02.estuary.tech:3000 check
+    server prod-ehi-delta03 prod-ehi-delta03.estuary.tech:3000 check
+    server prod-ehi-delta04 prod-ehi-delta04.estuary.tech:3000 check
+    server prod-ehi-delta05 prod-ehi-delta05.estuary.tech:3000 check
+    server prod-ehi-delta06 prod-ehi-delta06.estuary.tech:3000 check
+    server prod-ehi-delta07 prod-ehi-delta07.estuary.tech:3000 check
+    server prod-ehi-delta08 prod-ehi-delta08.estuary.tech:3000 check
 
 backend rke2_ebi_cluster
     balance roundrobin
@@ -126,6 +258,16 @@ backend rke2_ebi_ingress
     server prod-ebi-k8s-m02 prod-ebi-k8s-m02.estuary.tech:443 ssl check verify none
     server prod-ebi-k8s-m03 prod-ebi-k8s-m03.estuary.tech:443 ssl check verify none
 
+backend rke2_phos_ingress
+    mode http
+    balance roundrobin
+    timeout check 5000
+    # TODO add checks, use DNS to load list of workers instead of statically coding them in
+    log global
+    server prod-phos-k8s-w01 prod-phos-k8s-w01.estuary.tech:443 ssl verify none
+    server prod-phos-k8s-w02 prod-phos-k8s-w02.estuary.tech:443 ssl verify none
+    server prod-phos-k8s-w03 prod-phos-k8s-w03.estuary.tech:443 ssl verify none
+
 backend nautobot
     mode http
     option httpchk
@@ -145,26 +287,56 @@ backend snipeit
 backend ebi_postgresql
     balance source
     mode tcp
-    timeout queue 1m
-    timeout connect 30s
-    timeout client 1h
+    timeout connect 90000
     timeout server 1h
     option httpchk
     http-check expect status 200
     timeout check 5000
     default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
-    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
-    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+#    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
+#    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
+#    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+# Old servers
+    server prod-ebi-db01 10.24.0.61:5432 check port 8008
+    server prod-ebi-db02 10.24.0.62:5432 check port 8008
+    server prod-ebi-db03 10.24.0.63:5432 check port 8008
+
+backend ehi_postgresql
+    balance source
+    mode tcp
+    timeout connect 90000
+    timeout server 1h
+    option httpchk
+    http-check expect status 200
+    timeout check 5000
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+    server prod-ehi-db01 prod-ehi-db01.estuary.tech:5432 check port 8008
+    server prod-ehi-db02 prod-ehi-db02.estuary.tech:5432 check port 8008
+    server prod-ehi-db03 prod-ehi-db03.estuary.tech:5432 check port 8008
+
+backend ehi_postgresql_read
+    balance source
+    mode tcp
+    timeout connect 90000
+    timeout server 1h
+    timeout check 5000
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+    server prod-ehi-db01 prod-ehi-db01.estuary.tech:5432 check
+    server prod-ehi-db02 prod-ehi-db02.estuary.tech:5432 check
+    server prod-ehi-db03 prod-ehi-db03.estuary.tech:5432 check
 
 backend mariadb_cluster
     balance leastconn
     mode tcp
     timeout queue 1m
     timeout connect 30s
-    timeout client 1h
     timeout server 1h
     option httpchk
     server prod-ebi-mariadb01 prod-ebi-mariadb01.estuary.tech:3306 check port 9200
     server prod-ebi-mariadb02 prod-ebi-mariadb02.estuary.tech:3306 check port 9200
     server prod-ebi-mariadb03 prod-ebi-mariadb03.estuary.tech:3306 check port 9200
+
+backend filecointldr
+    balance source
+    mode http
+    server dev-nginx-ana01 dev-nginx-ana01.estuary.tech:80 check

@@ -5,7 +5,27 @@
 
   vars_files:
     - vars/main.yml
-    - vars/secrets.yml
+
+  pre_tasks:
+    - name: Check if repo-specific secrets file exists
+      delegate_to: localhost
+      connection: local
+      become: false
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vars/secrets.yml"
+      register: repo_secrets_file
+
+    - name: If repo-specific secrets file exists, load it in
+      delegate_to: localhost
+      connection: local
+      become: false
+      ansible.builtin.include_vars:
+        file: "vars/secrets.yml"
+      when: repo_secrets_file.stat.exists
+
+    - name: Refresh inventory when refresh_inventory is true
+      ansible.builtin.meta: refresh_inventory
+      when: refresh_inventory | default('false')
 
   roles:
     - haproxy
