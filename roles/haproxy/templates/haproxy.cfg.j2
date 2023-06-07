@@ -98,6 +98,9 @@ frontend http
     # FWS cdn
     acl fwscdn hdr(host) -i fwscdn.estuary.tech
     use_backend fwscdn if fwscdn
+    # CPI Reporting Pipeline
+    acl cpistats hdr(host) -i cpistats.estuary.tech
+    use_backend fwscdn if cpistats
     # Blackhole all other traffic
     default_backend blackhole
 
@@ -177,9 +180,9 @@ backend fwscdn
     balance leastconn
     option httpchk
     http-check expect status 200,405
-    server prod-fwscdn01 prod-fwscdn01.estuary.tech:80 check
-    server prod-fwscdn02 prod-fwscdn02.estuary.tech:80 check
-    server prod-fwscdn03 prod-fwscdn03.estuary.tech:80 check
+    server prod-fwscdn01 prod-fwscdn01.estuary.tech:443 ssl check verify none
+    server prod-fwscdn02 prod-fwscdn02.estuary.tech:443 ssl check verify none
+    server prod-fwscdn03 prod-fwscdn03.estuary.tech:443 ssl check verify none
 
 backend dev-edge
     server dev-edge01 dev-edge01.estuary.tech:1414 check
