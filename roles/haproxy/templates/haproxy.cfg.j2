@@ -180,6 +180,7 @@ backend fwscdn
     balance leastconn
     option httpchk
     http-check expect status 200,405
+    option httpchk GET / HTTP/1.1\r\nHost:\ fwscdn.estuary.tech
     server prod-fwscdn01 prod-fwscdn01.estuary.tech:443 ssl check verify none
     server prod-fwscdn02 prod-fwscdn02.estuary.tech:443 ssl check verify none
     server prod-fwscdn03 prod-fwscdn03.estuary.tech:443 ssl check verify none
@@ -254,7 +255,7 @@ backend rke2_ebi_ingress
     balance roundrobin
     # TODO (bug): This check should not be dependent on AWX being online.
     # This ingress will be used for other things too, which shouldn't go offline just because AWX does.
-    option httpchk GET / HTTP/1.1\r\nHost:\ awx.estuary.tech
+    option httpchk GET / HTTP/1.1\r\nHost:\ rancher.estuary.tech
     timeout check 5000
     log global
     server prod-ebi-k8s-m01 prod-ebi-k8s-m01.estuary.tech:443 ssl check verify none
@@ -267,9 +268,26 @@ backend rke2_phos_ingress
     timeout check 5000
     # TODO add checks, use DNS to load list of workers instead of statically coding them in
     log global
-    server prod-phos-k8s-w01 prod-phos-k8s-w01.estuary.tech:443 ssl verify none
-    server prod-phos-k8s-w02 prod-phos-k8s-w02.estuary.tech:443 ssl verify none
-    server prod-phos-k8s-w03 prod-phos-k8s-w03.estuary.tech:443 ssl verify none
+    server prod-phos-k8s-w21 prod-phos-k8s-w21.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w22 prod-phos-k8s-w22.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w23 prod-phos-k8s-w23.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w24 prod-phos-k8s-w24.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w25 prod-phos-k8s-w25.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w26 prod-phos-k8s-w26.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w27 prod-phos-k8s-w27.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w28 prod-phos-k8s-w28.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w29 prod-phos-k8s-w29.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w30 prod-phos-k8s-w30.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w31 prod-phos-k8s-w31.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w32 prod-phos-k8s-w32.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w33 prod-phos-k8s-w33.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w34 prod-phos-k8s-w34.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w35 prod-phos-k8s-w35.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w36 prod-phos-k8s-w36.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w37 prod-phos-k8s-w37.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w38 prod-phos-k8s-w38.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w39 prod-phos-k8s-w39.estuary.tech:443 ssl check verify none
+    server prod-phos-k8s-w40 prod-phos-k8s-w40.estuary.tech:443 ssl check verify none
 
 backend nautobot
     mode http
@@ -296,13 +314,13 @@ backend ebi_postgresql
     http-check expect status 200
     timeout check 5000
     default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-#    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
-#    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
-#    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
+    server prod-ebi-db01 prod-ebi-db01.estuary.tech:5432 check port 8008
+    server prod-ebi-db02 prod-ebi-db02.estuary.tech:5432 check port 8008
+    server prod-ebi-db03 prod-ebi-db03.estuary.tech:5432 check port 8008
 # Old servers
-    server prod-ebi-db01 10.24.0.61:5432 check port 8008
-    server prod-ebi-db02 10.24.0.62:5432 check port 8008
-    server prod-ebi-db03 10.24.0.63:5432 check port 8008
+#    server prod-ebi-db01 10.24.0.61:5432 check port 8008
+#    server prod-ebi-db02 10.24.0.62:5432 check port 8008
+#    server prod-ebi-db03 10.24.0.63:5432 check port 8008
 
 backend ehi_postgresql
     balance source
