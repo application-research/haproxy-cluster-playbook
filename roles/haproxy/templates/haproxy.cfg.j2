@@ -50,6 +50,33 @@ frontend http
 
     mode http
     option tcplog
+    # shuttles
+    acl shuttle_1 hdr(host) -i shuttle-1.estuary.tech
+    use_backend carrier if shuttle_1
+    acl shuttle_2 hdr(host) -i shuttle-2.estuary.tech
+    use_backend carrier if shuttle_2
+    acl shuttle_3 hdr(host) -i shuttle-3.estuary.tech
+    use_backend carrier if shuttle_3
+    acl shuttle_4 hdr(host) -i shuttle-4.estuary.tech
+    use_backend carrier if shuttle_4
+    acl shuttle_4_bs1 hdr(host) -i shuttle-4-bs1.estuary.tech
+    use_backend carrier if shuttle_4_bs1
+    acl shuttle_4_bs2 hdr(host) -i shuttle-4-bs2.estuary.tech
+    use_backend carrier if shuttle_4_bs2
+    acl shuttle_5 hdr(host) -i shuttle-5.estuary.tech
+    use_backend carrier if shuttle_5
+    acl shuttle_6 hdr(host) -i shuttle-6.estuary.tech
+    use_backend carrier if shuttle_6
+    acl shuttle_7 hdr(host) -i shuttle-7.estuary.tech
+    use_backend carrier if shuttle_7
+    acl shuttle_8 hdr(host) -i shuttle-8.estuary.tech
+    use_backend carrier if shuttle_8
+    acl shuttle_9 hdr(host) -i shuttle-9.estuary.tech
+    use_backend carrier if shuttle_9
+    acl shuttle_10 hdr(host) -i shuttle-10.estuary.tech
+    use_backend carrier if shuttle_10
+    acl shuttle_11 hdr(host) -i shuttle-11.estuary.tech
+    use_backend carrier if shuttle_11
     # Edge nodes
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
@@ -187,6 +214,12 @@ backend fwscdn
 
 backend dev-edge
     server dev-edge01 dev-edge01.estuary.tech:1414 check
+
+backend carrier
+    balance leastconn
+    mode http
+    option httpchk GET / HTTP/1.1\r\nHost:\ shuttles.estuary.tech
+    server prod-carrier01 prod-carrier01.estuary.tech:443 check ssl verify none
 
 backend edge
     mode http
