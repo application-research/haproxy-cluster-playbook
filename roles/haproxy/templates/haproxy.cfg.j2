@@ -80,7 +80,7 @@ frontend http
     # Edge nodes
     acl dev_edge hdr(host) -i dev-edge.estuary.tech
     use_backend dev-edge if dev_edge
-    # SeaweedFS S3
+    # GarageHQ S3
     acl s3_path hdr(host) -m reg -i ^[^\.]+\.s3\.estuary\.tech$
     use_backend s3_gateway if s3_path
     acl s3_direct hdr(host) -i s3.estuary.tech
@@ -94,6 +94,9 @@ frontend http
     # CPI Delta Registry nodes
     acl cpi_delta_registry hdr(host) -m reg -i ^[^\.]+\.registry\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_delta_registry
+    # CPI ERPNext
+    acl erpnext hdr(host) -i erp.estuary.tech
+    use_backend rke2_phos_ingress if erpnext
     # EBI Rancher (production)
     acl rancher hdr(host) -i rancher.estuary.tech
     use_backend rke2_ebi_ingress if rancher
@@ -168,17 +171,22 @@ frontend mariadb_cluster
     log global
     default_backend mariadb_cluster
 
+frontend nsqd_cluster
+    bind *:4151
+    mode tcp
+    option tcplog
+    log global
+    default_backend nsqd_cluster
+
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
 
 backend s3_gateway
     balance leastconn
+    option httpchk GET /health
     http-check expect status 200
-    server prod-swfs-filer01 prod-swfs-filer01.estuary.tech:443 ssl verify none
-    server prod-swfs-filer02 prod-swfs-filer01.estuary.tech:443 ssl verify none
-    server prod-swfs-filer03 prod-swfs-filer01.estuary.tech:443 ssl verify none
-    server prod-swfs-filer04 prod-swfs-filer01.estuary.tech:443 ssl verify none
+    server prod-garage01 prod-garage01.estuary.tech:3900 check port 3903
 
 backend rgw_gateway
     balance leastconn
@@ -192,6 +200,17 @@ backend rgw_gateway
     server polaris polaris.estuary.tech:7480 check
     server sirius sirius.estuary.tech:7480 check
     server vega vega.estuary.tech:7480 check
+
+backend nsqd_cluster
+    balance source
+    mode tcp
+    timeout connect 30s
+    timeout server 1h
+    server prod-nsqlookupd01 prod-nsqlookupd01.estuary.tech:4151 check
+    server prod-nsqlookupd02 prod-nsqlookupd02.estuary.tech:4151 check
+    server prod-nsqlookupd03 prod-nsqlookupd03.estuary.tech:4151 check
+    server prod-nsqlookupd04 prod-nsqlookupd04.estuary.tech:4151 check
+    server prod-nsqlookupd05 prod-nsqlookupd05.estuary.tech:4151 check
 
 backend moosefs
     balance source
