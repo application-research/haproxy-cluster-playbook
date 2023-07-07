@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem alpn h2,http/1.1
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edgeurid.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem alpn h2,http/1.1
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
