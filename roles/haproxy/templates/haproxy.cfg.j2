@@ -88,6 +88,9 @@ frontend http
     # CPI Edge nodes
     acl cpi_edge hdr(host) -m reg -i ^[^\.]+\.edge\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_edge
+    # CPI Edge URID nodes
+    acl cpi_edge_urid hdr(host) -m reg -i ^[^\.]+\.edgeurid\.estuary\.tech$
+    use_backend rke2_phos_ingress if cpi_edge_urid
     # CPI Delta nodes
     acl cpi_delta hdr(host) -m reg -i ^[^\.]+\.delta\.estuary\.tech$
     use_backend rke2_phos_ingress if cpi_delta
@@ -115,6 +118,9 @@ frontend http
     # EHI Edge (production)
     acl edge hdr(host) -i edge.estuary.tech
     use_backend edge if edge
+    # EHI Edge-URID (production)
+    acl edge_urid hdr(host) -i edgeurid.estuary.tech
+    use_backend edge_urid if edge_urid
     # EHI Delta (production)
     acl delta hdr(host) -i delta.estuary.tech
     use_backend delta if delta
@@ -252,6 +258,19 @@ backend edge
     server prod-ehi-edge06 prod-ehi-edge06.estuary.tech:1414 check
     server prod-ehi-edge07 prod-ehi-edge07.estuary.tech:1414 check
     server prod-ehi-edge08 prod-ehi-edge08.estuary.tech:1414 check
+
+backend edge_urid
+    mode http
+    balance leastconn
+    option httpchk
+    server prod-ehi-edge-urid01 prod-ehi-edge-urid01.estuary.tech:1414 check
+    server prod-ehi-edge-urid02 prod-ehi-edge-urid02.estuary.tech:1414 check
+    server prod-ehi-edge-urid03 prod-ehi-edge-urid03.estuary.tech:1414 check
+    server prod-ehi-edge-urid04 prod-ehi-edge-urid04.estuary.tech:1414 check
+    server prod-ehi-edge-urid05 prod-ehi-edge-urid05.estuary.tech:1414 check
+    server prod-ehi-edge-urid06 prod-ehi-edge-urid06.estuary.tech:1414 check
+    server prod-ehi-edge-urid07 prod-ehi-edge-urid07.estuary.tech:1414 check
+    server prod-ehi-edge-urid08 prod-ehi-edge-urid08.estuary.tech:1414 check
 
 backend delta
     mode http
