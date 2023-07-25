@@ -177,6 +177,13 @@ frontend mariadb_cluster
     log global
     default_backend mariadb_cluster
 
+frontend nsqd_cluster_4150
+    bind *:4150
+    mode tcp
+    option tcplog
+    log global
+    default_backend nsqd_cluster_4150
+
 frontend nsqd_cluster
     bind *:4151
     mode tcp
@@ -217,6 +224,17 @@ backend nsqd_cluster
     server prod-nsqlookupd03 prod-nsqlookupd03.estuary.tech:4151 check
     server prod-nsqlookupd04 prod-nsqlookupd04.estuary.tech:4151 check
     server prod-nsqlookupd05 prod-nsqlookupd05.estuary.tech:4151 check
+
+backend nsqd_cluster_4150
+    balance source
+    mode tcp
+    timeout connect 30s
+    timeout server 1h
+    server prod-nsqlookupd01 prod-nsqlookupd01.estuary.tech:4150 check
+    server prod-nsqlookupd02 prod-nsqlookupd02.estuary.tech:4150 check
+    server prod-nsqlookupd03 prod-nsqlookupd03.estuary.tech:4150 check
+    server prod-nsqlookupd04 prod-nsqlookupd04.estuary.tech:4150 check
+    server prod-nsqlookupd05 prod-nsqlookupd05.estuary.tech:4150 check
 
 backend moosefs
     balance source
