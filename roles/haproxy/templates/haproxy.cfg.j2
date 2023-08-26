@@ -42,7 +42,7 @@ listen stats
 
 frontend http
     bind *:80
-    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edgeurid.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem alpn h2,http/1.1
+    bind *:443 ssl crt /etc/wildcard-tls/latest/generic/_.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.delta.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edge.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.edgeurid.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.registry.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.s3.estuary.tech-combined.pem crt /etc/wildcard-tls/latest/generic/_.fdi.network-combined.pem crt /etc/wildcard-tls/latest/generic/_.motion.fdi.network-combined.pem crt /etc/wildcard-tls/latest/generic/_.singularity.fdi.network-combined.pem alpn h2,http/1.1
     # HTTPS redirect
     redirect scheme https code 301 if !{ ssl_fc }
 
@@ -56,6 +56,10 @@ frontend http
     # FDI Network - Motion etc
     acl fdi_network hdr(host) -m reg -i ^[^\.]+\.fdi\.network$
     use_backend rke2_phos_ingress if fdi_network
+    acl fdi_network_motion hdr(host) -m reg -i ^[^\.]+\.motion\.fdi\.network$
+    use_backend rke2_phos_ingress if fdi_network_motion
+    acl fdi_network_singularity hdr(host) -m reg -i ^[^\.]+\.singularity\.fdi\.network$
+    use_backend rke2_phos_ingress if fdi_network_singularity
     # shuttles
     acl shuttle_1 hdr(host) -i shuttle-1.estuary.tech
     use_backend carrier if shuttle_1
