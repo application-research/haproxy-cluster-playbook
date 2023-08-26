@@ -53,6 +53,9 @@ frontend http
     # ipfs nodes
     acl ipfs hdr(host) -i ipfs.estuary.tech
     use_backend ipfs if ipfs
+    # FDI Network - Motion etc
+    acl fdi_network hdr(host) -m reg -i ^[^\.]+\.fdi\.network$
+    use_backend rke2_phos_ingress if fdi_network
     # shuttles
     acl shuttle_1 hdr(host) -i shuttle-1.estuary.tech
     use_backend carrier if shuttle_1
