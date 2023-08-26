@@ -50,6 +50,9 @@ frontend http
 
     mode http
     option tcplog
+    # ipfs nodes
+    acl ipfs hdr(host) -i ipfs.estuary.tech
+    use_backend ipfs if ipfs
     # shuttles
     acl shuttle_1 hdr(host) -i shuttle-1.estuary.tech
     use_backend carrier if shuttle_1
@@ -194,6 +197,9 @@ frontend nsqd_cluster
 # Send all traffic not specifically destined for a destination to an invalid port.
 backend blackhole
     server blackhole 127.0.0.1:443 verify none
+
+backend ipfs
+    server prod-ipfs01 prod-ipfs01.estuary.tech:8080 check
 
 backend s3_gateway
     balance leastconn
